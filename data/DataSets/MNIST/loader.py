@@ -77,7 +77,7 @@ def loadLabels (path) :
 
     return (labels, num_items)
 
-def loadCombined (training = True, normalise = True) -> tuple[np.ndarray, np.ndarray]: ### imgs, labels:
+def loadCombined (training = True, normalise = True, n_max = None) -> tuple[np.ndarray, np.ndarray]: ### imgs, labels:
 
     labels_path = "train-labels.idx1-ubyte"
     images_path = "train-images.idx3-ubyte"
@@ -93,10 +93,19 @@ def loadCombined (training = True, normalise = True) -> tuple[np.ndarray, np.nda
     labels = loadLabels (labels_path)[0]
     imgs = loadImgs (images_path, normalise = normalise)[0]
 
+    if n_max != None:
+        imgs = imgs[0:n_max]
+        labels = labels[0:n_max]
+
     return imgs, labels
 
 
 if __name__ == "__main__":
-    imgs, labels = loadCombined(False, normalise=True)
+    imgs, labels = loadCombined(True, normalise=False)
+
+    showGreyIMG(imgs[0].reshape((28, 28)))
+
+
+    showGreyIMG(imgs[0].reshape((28, 28)))
 
 

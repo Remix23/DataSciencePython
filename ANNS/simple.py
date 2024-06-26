@@ -6,8 +6,8 @@ class SimpleANN:
 
     def __init__(self, layers : list[int], activation_func : ActivationFunc, initializer : Initializer = Uniform(), bias_initializer : Initializer = Uniform(0, 0), ouput_func : TransformFunc = SoftMax(), loss_func : LossFunc = MSE()) -> None:
 
-        self.weight_matrices = [] # arr of n - 1 matrices each of size n_i x n_i+1 initialized with random weights
-        self.bias_matrices = []
+        self.weight_matrices : list[np.ndarray] = [] # arr of n - 1 matrices each of size n_i x n_i+1 initialized with random weights
+        self.bias_matrices : list[np.ndarray] = []
         self.cost : np.ndarray = np.zeros(layers[-1])
 
         ### gen neurons - values to be passed futher
@@ -79,29 +79,19 @@ class SimpleANN:
 
         return self.layers[self.num_of_layers - 1]
 
-    def propagateBackwards (self, desired_out : np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def propagateBackwards (self, desired_out : np.ndarray) -> tuple[list[np.ndarray], list[np.ndarray]]:
         if desired_out.shape != self.layers[-1].shape:
             raise Exception(f"Incorrect dimension of the `out` array: should be {len(self.layers[-1])} but was {len(desired_out)}" )
 
         ## create change tables
-        bias_changes = np.array([np.zeros(x) for x in self.layers_info[1:]])
-        weight_changes = np.array([np.zeros(s.shape) for s in self.weight_matrices])
+        bias_changes = [np.zeros(x) for x in self.layers_info[1:]]
+        weight_changes = [np.zeros(s.shape) for s in self.weight_matrices]
 
         self.layers[-1] = -1 * self.loss_func.computeLossDerivative (self.layers[-1], desired_out)
 
         for i_layer in range(self.num_of_layers - 1, 0, -1):
 
             for i_neuron in range(len(self.layers[i_layer])):
-
-                if i_layer >= 1: 
-                ### compute the common backprop parts
-                    dadz = self.activation_func.getDerrivative(self.zs[i_layer][i_neuron])
-                    dcda = self.layers[i_layer][i_neuron]
-
-                    ### update bias associatiated with a neuron
-                    # self.bias_matrices[i_layer - 1][i_neuron] += dadz * dcda
-
-                    bias_changes[i_layer - 1][i_neuron] = dadz * dcda
 
                 ### update neuron value for futher backpropagation steps and weights
                 if i_layer != self.num_of_layers - 1:
@@ -119,11 +109,39 @@ class SimpleANN:
                         #self.weight_matrices[i_layer][next_layer][i_neuron] += weight_change
                         weight_changes[i_layer][next_layer][i_neuron] = weight_change
 
-                    self.layers[i_layer][i_neuron] += s
+                    self.layers[i_layer][i_neuron] = s
 
-        return (bias_changes, weight_change)
+                if i_layer >= 1: 
+                ### compute the common backprop parts
+                    dadz = self.activation_func.getDerrivative(self.zs[i_layer][i_neuron])
+                    dcda = self.layers[i_layer][i_neuron]
 
-    def performRunTraining (self, data_in : np.ndarray, data_out : np.ndarray, optimizer : Optimizer, batch_size = 1):
+                    ### update bias associatiated with a neuron
+                    # self.bias_matrices[i_layer - 1][i_neuron] += dadz * dcda
+
+                    bias_changes[i_layer - 1][i_neuron] = dadz * dcda
+
+        return (bias_changes, weight_changes)
+    
+    def proccessBatch (self, batch_in, batch_out, bias_optimizer : Optimizer, weights_optimizer : Optimizer, training = False):
+        biases_change_total = [np.zeros(x) for x in self.layers_info[1:]]
+        weights_changes_total = [np.zeros(s.shape) for s in self.weight_matrices]
+            
+        for img, label in zip(batch_in, batch_out):
+            self.propagateForward(img)
+            a, b = self.propagateBackwards(label)
+
+            for i_layer in range(self.num_of_layers - 1):
+                biases_change_total[i_layer] += a[i_layer]
+                weights_changes_total[i_layer] += b[i_layer]
+
+        for i_layer in range(self.num_of_layers - 1):
+            self.bias_matrices[i_layer] += bias_optimizer.updateWeight(biases_change_total[i_layer])
+            self.weight_matrices[i_layer] += weights_optimizer.updateWeight(weights_changes_total[i_layer])
+        
+        return biases_change_total, weights_changes_total
+
+    def performRunTraining (self, data_in : np.ndarray, data_out : np.ndarray, bias_optimizer : Optimizer, weights_optimizer : Optimizer, batch_size = 1):
 
         n = len(data_in)
 
@@ -140,22 +158,18 @@ class SimpleANN:
         batches_out = data_out.reshape((n_of_batches, batch_size, len(data_out[0])))
 
         for i_batch in range(n_of_batches):
-            biases_change_total = np.array([np.zeros(x) for x in self.layers_info[1:]])
-            weight_changes_total = np.array([np.zeros(s.shape) for s in self.weight_matrices])
-            
-            for img, label in zip(batches_in[i_batch], batches_out[i_batch]):
-                self.propagateForward(img)
-                a, b = self.propagateBackwards(label)
-                biases_change_total += a
-                weight_changes_total += b
-
-            ### optimizer
-            self.bias_matrices += optimizer.updateWeight(biases_change_total)
-            self.weight_matrices += optimizer.updateWeight(weight_changes_total)
-
+            self.proccessBatch(batches_in[i_batch], batches_out[i_batch], bias_optimizer , weights_optimizer, training = True)
 
     def performRunTest (self, data_in : np.ndarray, data_out : np.ndarray):
-        pass
+        corr = 0
+        for img, lab in zip(data_in, data_out):
+
+            model_prediction = np.argmax(self.propagateForward(img))
+
+            if model_prediction == lab:
+                corr += 1
+
+        return corr / len(data_in)
 
     def printState (self, n) -> None:
         print(self.layers[n])

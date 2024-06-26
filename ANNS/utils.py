@@ -212,6 +212,47 @@ class SGD (Optimizer):
     def updateWeight(self, dw: np.ndarray) -> np.ndarray:
         return dw * self.lrate / self.batch_size
 
+# TODO: implement the rest of the optimizers - and understant them
+class Momentum (Optimizer):
+
+    def __init__(self, v0, lrate) -> None:
+        super().__init__()
+        
+
+    def updateWeight(self, dw: np.ndarray) -> np.ndarray:
+        return super().updateWeight(dw)
+    
+class AdaGrad (Optimizer):
+
+    def __init__(self) -> None:
+        super().__init__()
+
+    def updateWeight(self, dw: np.ndarray) -> np.ndarray:
+        return super().updateWeight(dw)
+    
+class RMSprop (Optimizer):
+
+    def __init__(self) -> None:
+        super().__init__()
+
+    def updateWeight(self, dw: np.ndarray) -> np.ndarray:
+        return super().updateWeight(dw)
+    
+class Adam (Optimizer):
+
+    def __init__(self) -> None:
+        super().__init__()
+
+    def updateWeight(self, dw: np.ndarray) -> np.ndarray:
+        return super().updateWeight(dw)
+    
+class NAG (Optimizer):
+
+    def __init__(self) -> None:
+        super().__init__()
+    
+    def updateWeight(self, dw: np.ndarray) -> np.ndarray:
+        return super().updateWeight(dw)
 
 if __name__ == "__main__":
     a = SoftMax()
