@@ -29,21 +29,10 @@ test1 = SimpleANN(layers,
                   ouput_func = out_func, 
                   loss_func = loss_func)
 
+comb_train = loadCombined(training=True, normalise=True, convert_labels = True, n_max=10_000)
 
-# m1 = np.arange(1, 9).reshape((4, 2))
-# m2 = np.arange(1, 9).reshape((2,4))
+test1.performRunTraining(comb_train, opt, opt, batch_size=BATCH_SIZE, examine_progress=True, num_of_epochs = 30)
 
-# test1.weight_matrices = [m1, m2]
+comb_test = loadCombined(training = False, normalise = True, n_max = 1000)
 
-# print(test1.propagateForward(np.ones(2)))
-# print(test1.propagateBackwards(np.array([1, 0])))
-
-imgs, labels = loadCombined(training=True, normalise=True)
-
-labels = convertLabels(labels)
-
-test1.performRunTraining(imgs, labels, opt, opt, batch_size=BATCH_SIZE)
-
-imgs, labels = loadCombined(training = False, normalise = True, n_max = 1000)
-
-print(test1.performRunTest(imgs, labels))
+print(test1.performRunTest(comb_test))
