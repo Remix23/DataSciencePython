@@ -14,7 +14,6 @@ layers = [
     10
 ]
 
-
 act = Sigmoid()
 init = Normal()
 out_func = SoftMax()
@@ -29,10 +28,10 @@ test1 = SimpleANN(layers,
                   ouput_func = out_func, 
                   loss_func = loss_func)
 
-comb_train = loadCombined(training=True, normalise=True, convert_labels = True, n_max=10_000)
+comb_train = loadCombined(training=True, normalise=True, convert_labels = True)
 
 test1.performRunTraining(comb_train, opt, opt, batch_size=BATCH_SIZE, examine_progress=True, num_of_epochs = 30)
 
-comb_test = loadCombined(training = False, normalise = True, n_max = 1000)
+comb_test = loadCombined(training = False, normalise = True)
 
 print(test1.performRunTest(comb_test))

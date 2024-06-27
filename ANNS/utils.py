@@ -28,7 +28,7 @@ class ReLu (ActivationFunc):
         self.a = a
 
     def getVal (self, x):
-        return max(self.a * x, x)
+        return max(self.a * x, 0)
 
     def getDerrivative (self, x):
         return max(self.a, 1) if x >= 0 else min(self.a, 1)

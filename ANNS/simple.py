@@ -92,18 +92,21 @@ class SimpleANN:
         for i_layer in range(self.num_of_layers - 2, -1, -1):
 
             ### compute list of derrivatives w.r.t. activation func
-            layer_dadz = self.activation_func.getDerrivative(self.zs[i_layer + 1])
+            layer_dadz : np.ndarray = self.activation_func.getDerrivative(self.zs[i_layer + 1])
+            dcda = self.layers[i_layer + 1] # represent the error from the next layer
+            dzdw = self.layers[i_layer] # represent the activations from current layer
 
-            bias_changes[i_layer] = layer_dadz * self.layers[i_layer + 1]
+            d = layer_dadz * dcda
 
-            ### compute updates for weights and neurons
-            dzdw = self.layers[i_layer]
-            dcda = self.layers[i_layer + 1]
+            bias_changes[i_layer] = d
 
+            ### shape: layers_info[i_layer + 1] x self.layers_info[i_layer]
             weight_update = np.dot((dcda * layer_dadz).reshape(self.layers_info[i_layer + 1], 1), dzdw.reshape(1, self.layers_info[i_layer])) # self.info_layers[i_layer + 1] x self.info_layers[i_layer]
+
             weight_changes[i_layer] = weight_update
 
-            neurons_update = np.sum(weight_update, axis = 0)
+            ### size: self.layers_info[i_layer]
+            neurons_update = np.matmul(self.weight_matrices[i_layer].transpose(), d)
             self.layers[i_layer] = neurons_update
 
         return bias_changes, weight_changes
@@ -118,7 +121,7 @@ class SimpleANN:
 
         self.layers[-1] = -1 * self.loss_func.computeLossDerivative (self.layers[-1], desired_out)
 
-        for i_layer in range(self.num_of_layers - 1, 0, -1):
+        for i_layer in range(self.num_of_layers - 1, -1, -1):
 
             for i_neuron in range(len(self.layers[i_layer])):
 
@@ -190,9 +193,9 @@ class SimpleANN:
 
             batches = [data[k : k + batch_size] for k in range(0, n, batch_size)]
 
-            for i_batch in range(n_of_batches):
+            for batch in batches:
 
-                self.proccessBatch(batches[i_batch], bias_optimizer , weights_optimizer)
+                self.proccessBatch(batch, bias_optimizer , weights_optimizer)
 
             if examine_progress:
                 ## run tests on randomly selected batch
