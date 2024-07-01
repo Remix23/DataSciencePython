@@ -1,6 +1,5 @@
 import pygame as pg
 import numpy as np
-from pygame.constants import MOUSEBUTTONDOWN
 
 class Text:
     pass

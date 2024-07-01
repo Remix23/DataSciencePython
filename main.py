@@ -10,7 +10,7 @@ BATCH_SIZE = 10
 ### set up network 
 layers = [
     784, 
-    30,
+    100,
     10
 ]
 
@@ -19,7 +19,7 @@ init = Normal()
 out_func = SoftMax()
 loss_func = MSE()
 
-opt = SGD(3, BATCH_SIZE)
+opt = SGD(1.5, BATCH_SIZE)
 
 ### create testing network:
 test1 = SimpleANN(layers, 
