@@ -96,7 +96,7 @@ class KMeans :
         return np.array([x.pos for x in self.clusteroids])
 
     def performIterations (self, n) -> np.ndarray:
-        for i in range (n):
+        for _ in range (n):
             self.updatePoints()
             self.updateClusters()
 

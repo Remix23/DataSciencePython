@@ -1,22 +1,25 @@
 import pygame as pg
 import numpy as np
+from dataclasses import dataclass, field
 
+@dataclass
+class Btn:
+    pass
+@dataclass
 class Text:
     pass
 
-class Btn:
-    pass
-
+@dataclass
 class Scene:
 
-    def __init__(self, id, name, data = [], buttons = [], texts = []) -> None:
-        self.id = id
-        self.name = name
-        self.data = data
-        self.buttons = self.buttons
-        self.texts = texts
+    iid : int
+    name : str
+    data : np.ndarray 
+    btns : list[Btn] = field(default_factory=list)
+    texts : list[Text] = field(default_factory=list)
 
-    def blit (self):
+
+    def blit (self, surface):
         pass
 
 class Visualizer:
@@ -26,9 +29,11 @@ class Visualizer:
 
         self.screen = pg.display.set_mode((screen_width, screen_height))
 
+        self.surface_screen = pg.Surface()
+
         self.running = False
 
-        empty_scene = Scene(0, "B")
+        empty_scene = Scene(0, "B", data=np.array([]))
 
         self.scenes : list[Scene] = [empty_scene]
 
@@ -39,7 +44,7 @@ class Visualizer:
         exit()
 
     def addScene (self, data, btns : list[Btn] = [], texts : list[Text] = [], name = ""):
-        pass
+        self.scenes.append(Scene(len(self.scenes), name, data, btns, texts))
 
     def activate (self, i = 0, name = ""):
 
@@ -72,9 +77,9 @@ class Visualizer:
                 if event.type == pg.QUIT:
                     self.running = False
 
-                if event.type == MOUSEBUTTONDOWN:
+                if event.type == pg.MOUSEBUTTONDOWN:
                     self._handleClicks(event)
 
             ### drawing
-
+            self.active_scene.blit(self.screen)
         self.clean()

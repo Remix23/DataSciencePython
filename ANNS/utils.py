@@ -215,12 +215,15 @@ class SGD (Optimizer):
 # TODO: implement the rest of the optimizers - and understant them
 class Momentum (Optimizer):
 
-    def __init__(self, v0, lrate) -> None:
+    def __init__(self, v0 : np.ndarray, b : float, lrate : float) -> None:
         super().__init__()
-        
+        self.v = v0
+        self.beta = b
+        self.lrate = lrate
 
     def updateWeight(self, dw: np.ndarray) -> np.ndarray:
-        return super().updateWeight(dw)
+        self.v = self.beta * self.v + (1 - self.beta) * dw
+        return self.v * self.lrate
     
 class AdaGrad (Optimizer):
 
